@@ -1,0 +1,4 @@
+select pd.name, cat.name 
+from products pd inner join categories cat on pd.id_categories=cat.id
+where pd.amount > 100 and cat.id in (1,2,3,6,9)
+order by cat.id;
