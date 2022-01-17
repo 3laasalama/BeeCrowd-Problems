@@ -1,0 +1,76 @@
+create table teams(
+  id INTEGER PRIMARY KEY not null,
+  name VARCHAR (50)
+);
+
+create table matches(
+  id INTEGER PRIMARY KEY not null,
+  team_1 INTEGER REFERENCES teams (id),
+  team_2 INTEGER REFERENCES teams (id),
+  team_1_goals INTEGER,
+  team_2_goals INTEGER
+);
+
+INSERT INTO teams(id, name)
+VALUES 
+       (1, 'CEARA'),
+       (2, 'FORTALEZA'),
+       (3, 'GUARANY DE SOBRAL'),
+       (4, 'FLORESTA');
+
+INSERT INTO matches(id, team_1, team_2, team_1_goals, team_2_goals)
+VALUES 
+       (1, 4, 1, 0, 4),
+       (2, 3, 2, 0, 1),
+       (3, 1, 3, 3, 0),
+       (4, 3, 4, 0, 1),
+       (5, 1, 2, 0, 0),
+       (6, 2, 4, 2, 1);
+
+select * from teams;
+
+select 
+	(select t.name from teams t where t.id=teams.id) as name
+	,
+	(select count(team_1) from matches where team_1=teams.id)
+	+
+	(select count(team_2) from matches where team_2=teams.id)
+	as matches
+	,
+	(select sum(case when m.team_1_goals > m.team_2_goals then 1 else 0 end) as victories
+	from matches m, teams t
+	where m.team_1=t.id and teams.id=t.id) 
+	+ 
+	(select sum(case when m.team_2_goals > m.team_1_goals then 1 else 0 end) as victories
+	from matches m, teams t
+	where m.team_2=t.id and teams.id=t.id )
+	as victories
+	,
+	(select sum(case when m.team_2_goals < m.team_1_goals then 1 else 0 end) as defeats
+	from matches m, teams t
+	where m.team_2=t.id and teams.id=t.id )
+	+
+	(select sum(case when team_2_goals > team_1_goals then 1 else 0 end) 
+	from matches m, teams t
+	where m.team_1=t.id and teams.id=t.id )
+	as defeats
+	,
+	(select sum(case when team_2_goals = team_1_goals then 1 else 0 end) as draws
+	from matches m, teams t
+	where m.team_1=t.id and teams.id=t.id )
+	+
+	(select sum(case when team_2_goals = team_1_goals then 1 else 0 end) 
+	from matches m, teams t
+	where m.team_2=t.id and teams.id=t.id )
+	as draws
+	,
+	(select sum(case when team_1_goals > team_2_goals then 3 when team_1_goals = team_2_goals then 1 else 0 end) as score
+	from matches m, teams t
+	where m.team_1=t.id and teams.id=t.id)
+	+
+	(select sum(case when team_1_goals < team_2_goals then 3 when team_1_goals = team_2_goals then 1 else 0 end) as score
+	from matches m, teams t
+	where m.team_2=t.id and teams.id=t.id) 
+	as score
+	
+from teams order by score desc; 
